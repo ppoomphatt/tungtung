@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plume Hunter - Advanced Geo-Temporal Matrix</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        /* Custom Glowing and Sci-Fi effects */
+        .scifi-panel {
+            background: rgba(10, 20, 30, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid #1e3a8a;
+            box-shadow: 0 0 15px rgba(30, 58, 138, 0.5);
+        }
+        .scifi-glow-green { box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
+        .scifi-glow-red { box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+        .scifi-glow-blue { box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+        
+        /* Custom Leaflet overrides */
+        .leaflet-container {
+            background: #020617 !important;
+        }
+        /* Custom pulse animation for crime scene */
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pulse-marker {
+            animation: pulse 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans h-screen flex flex-col overflow-hidden">
+
+    <!-- Header Section -->
+    <header class="bg-slate-900 border-b border-blue-900 p-4 flex justify-between items-center z-10 shrink-0">
+        <div class="flex items-center space-x-3">
+            <div class="w-3 h-3 bg-cyan-400 rounded-full animate-ping"></div>
+            <h1 class="text-xl font-bold tracking-wider text-cyan-400 uppercase">Plume Hunter: Geo-Temporal Matrix v1.0</h1>
+        </div>
+        <div class="flex items-center space-x-6 text-sm">
+            <div class="bg-slate-950 px-3 py-1.5 border border-slate-800 rounded">
+                <span class="text-slate-400">OPERATOR:</span> <span class="text-emerald-400 font-mono">GISTDA_ANALYST</span>
+            </div>
+            <div class="bg-slate-950 px-3 py-1.5 border border-slate-800 rounded flex items-center space-x-2">
+                <span class="text-slate-400">CRITICAL HP:</span>
+                <div id="hp-container" class="flex space-x-1 text-red-500 font-bold">
+                    ❤️ ❤️
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="flex flex-1 w-full overflow-hidden">
+        
+        <!-- Left: Map Sandbox -->
+        <div class="w-2/3 h-full relative border-r border-blue-900 bg-slate-900">
+            <div id="map" class="w-full h-full"></div>
+            
+            <!-- Map Overlay Legend -->
+            <div class="absolute bottom-4 left-4 z-[1000] scifi-panel p-3 rounded-lg max-w-xs text-xs pointer-events-none">
+                <div class="font-bold text-cyan-400 mb-1.5 uppercase tracking-wide border-b border-slate-700 pb-1">Map Legend</div>
+                <div class="space-y-1 text-slate-300">
+                    <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full bg-red-600 block"></span> <span>จุดเกิดเหตุ (กระชังปลาตาย)</span></div>
+                    <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded bg-amber-500 block"></span> <span>Zone โรงงานต้องสงสัย (A, B, C, D)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Control Command Dashboard -->
+        <div class="w-1/3 h-full flex flex-col bg-slate-950 p-4 space-y-4 overflow-y-auto">
+            
+            <!-- Objective Box -->
+            <div class="scifi-panel p-4 rounded-lg border-l-4 border-l-cyan-500">
+                <h2 class="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-1">ภารกิจหลัก (Mission Objective)</h2>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    สืบหาโรงงานลักลอบปล่อยสารพิษลงแม่น้ำท่าจีนจนเกิดเหตุปลาตาย <strong class="text-amber-400">ห้ามสุ่มเดาเด็ดขาด!</strong> จงใช้ข้อมูลอนุกรมเวลา (Time-Series) และเซนเซอร์ภาพถ่ายดาวเทียมเพื่อระบุตัวตนคนร้ายที่แท้จริง
+                </p>
+            </div>
+
+            <!-- Time-Series Controller -->
+            <div class="scifi-panel p-4 rounded-lg">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">⏱️ ตัวเลือกเวลา (Time-Series)</h3>
+                <div class="grid grid-cols-3 gap-2">
+                    <button id="btn-day1" onclick="switchDay(1)" class="py-2.5 px-2 text-xs font-bold rounded border uppercase tracking-wider bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800 transition">
+                        Day 1<br><span class="text-[10px] font-normal opacity-75">สภาวะปกติ</span>
+                    </button>
+                    <button id="btn-day2" onclick="switchDay(2)" class="py-2.5 px-2 text-xs font-bold rounded border uppercase tracking-wider bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800 transition">
+                        Day 2<br><span class="text-[10px] font-normal opacity-75">วันเกิดเหตุ</span>
+                    </button>
+                    <button id="btn-day3" onclick="switchDay(3)" class="py-2.5 px-2 text-xs font-bold rounded border uppercase tracking-wider bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800 transition">
+                        Day 3<br><span class="text-[10px] font-normal opacity-75">หลังพายุ</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sensor Mode Layers -->
+            <div class="scifi-panel p-4 rounded-lg">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">🛰️ โหมดวิเคราะห์วิกฤต (Sensor Layers)</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="btn-rgb" onclick="switchSensor('RGB')" class="p-3 text-xs font-bold rounded border text-left flex flex-col justify-between transition">
+                        <span class="text-cyan-400">[RGB] True Color</span>
+                        <span class="text-[10px] text-slate-400 font-normal mt-1">ภาพสีจริงสายตาเปล่า</span>
+                    </button>
+                    <button id="btn-nir" onclick="switchSensor('NIR')" class="p-3 text-xs font-bold rounded border text-left flex flex-col justify-between transition">
+                        <span class="text-emerald-400">[NIR] False Color</span>
+                        <span class="text-[10px] text-slate-400 font-normal mt-1">อินฟราเรดใกล้/เจาะเมฆ</span>
+                    </button>
+                    <button id="btn-flow" onclick="switchSensor('FLOW')" class="p-3 text-xs font-bold rounded border text-left flex flex-col justify-between transition">
+                        <span class="text-blue-400">[FLOW] Hydro-Dynamics</span>
+                        <span class="text-[10px] text-slate-400 font-normal mt-1">แผนภาพทิศทางกระแสน้ำ</span>
+                    </button>
+                    <button id="btn-ndvi" onclick="switchSensor('NDVI')" class="p-3 text-xs font-bold rounded border text-left flex flex-col justify-between transition">
+                        <span class="text-lime-400">[NDVI] Vegetation Index</span>
+                        <span class="text-[10px] text-slate-400 font-normal mt-1">ดัชนีพืชพรรณริมตลิ่ง</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Interrogation / Raid Panel -->
+            <div class="scifi-panel p-4 rounded-lg border-t-2 border-t-red-600">
+                <h3 class="text-xs font-bold text-red-400 uppercase tracking-wider mb-3">🚨 ออกหมายจับกุม (Execute Raid Warrant)</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="executeRaid('A')" class="py-2.5 bg-slate-900 border border-amber-600 text-amber-400 rounded text-xs font-bold hover:bg-amber-950/40 transition">RAID ZONE A</button>
+                    <button onclick="executeRaid('B')" class="py-2.5 bg-slate-900 border border-amber-600 text-amber-400 rounded text-xs font-bold hover:bg-amber-950/40 transition">RAID ZONE B</button>
+                    <button onclick="executeRaid('C')" class="py-2.5 bg-slate-900 border border-amber-600 text-amber-400 rounded text-xs font-bold hover:bg-amber-950/40 transition">RAID ZONE C</button>
+                    <button onclick="executeRaid('D')" class="py-2.5 bg-slate-900 border border-amber-600 text-amber-400 rounded text-xs font-bold hover:bg-amber-950/40 transition">RAID ZONE D</button>
+                </div>
+            </div>
+
+            <!-- Real-time Terminal System Log -->
+            <div class="flex-1 min-h-[150px] bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-[11px] flex flex-col">
+                <div class="text-slate-500 border-b border-slate-900 pb-1 mb-2 uppercase text-[10px] tracking-widest flex justify-between">
+                    <span>SYSTEM LOG TERMINAL</span>
+                    <span class="text-cyan-600">LIVE</span>
+                </div>
+                <div id="log-box" class="flex-1 overflow-y-auto space-y-1.5 text-slate-400 pr-1">
+                    <!-- Logs injection -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modals for Game Ends -->
+    <div id="end-modal" class="fixed inset-0 bg-slate-950/90 z-[9999] hidden flex items-center justify-center p-4">
+        <div id="modal-content" class="max-w-md w-full scifi-panel p-6 rounded-xl text-center space-y-4">
+            <!-- Dynamic Content -->
+        </div>
+    </div>
+
+    <!-- Application Script Logic -->
+    <script>
+        // --- GAME STATE ---
+        let currentDay = 1;
+        let currentSensor = 'RGB';
+        let playerHP = 2;
+        let gameActive = true;
+
+        // --- COORDINATES CONFIGURATION (ลุ่มน้ำท่าจีน จ.สมุทรสาคร) ---
+        const mapCenter = [13.548, 100.275];
+        const fishCageCoords = [13.5478, 100.2748]; // สามแยกกลางแม่น้ำ
+        
+        // โรงงานตัวละครต่างๆ (พิกัดต้องอยู่บนบก/ตลิ่งชัดเจนห้ามลอยกลางน้ำ)
+        const factories = {
+            A: { name: "Zone A (โรงงานต้นน้ำ)", coords: [13.5535, 100.2730] },
+            B: { name: "Zone B (โรงงานฝั่งตะวันออก - ตัวหลอก)", coords: [13.5492, 100.2815] },
+            C: { name: "Zone C (โรงงานฝั่งตะวันตก - คนร้ายตัวจริง)", coords: [13.5485, 100.2665] },
+            D: { name: "Zone D (โรงงานปลายน้ำ)", coords: [13.5410, 100.2765] }
+        };
+
+        // --- INITIALIZE MAP ---
+        const map = L.map('map', {
+            zoomControl: true,
+            minZoom: 14,
+            maxZoom: 17
+        }).setView(mapCenter, 15);
+
+        // Base Map Layer: Esri World Imagery
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        }).addTo(map);
+
+        // Layer Groups to toggle dynamically
+        const markersGroup = L.layerGroup().addTo(map);
+        const dynamicLayersGroup = L.layerGroup().addTo(map);
+
+        // --- DRAW STATIC MARKERS ---
+        function initStaticLayers() {
+            markersGroup.clearLayers();
+
+            // 1. จุดเกิดเหตุกระชังปลา
+            const fishIcon = L.divIcon({
+                className: 'pulse-marker',
+                html: `<div class="w-5 h-5 bg-red-600 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white shadow-lg">☠️</div>`,
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+            L.marker(fishCageCoords, { icon: fishIcon }).addTo(markersGroup)
+                .bindPopup("<b class='text-slate-900'>จุดเกิดเหตุ: กระชังปลาของเกษตรกร</b><br><span class='text-slate-600 text-xs'>พบปลาตายลอยเกลื่อนจำนวนมากเนื่องจากค่าออกซิเจนในน้ำลดลงเฉียบพลันจากสารเคมี</span>");
+
+            // 2. โรงงานผู้ต้องสงสัย
+            Object.keys(factories).forEach(key => {
+                const factory = factories[key];
+                const factoryIcon = L.divIcon({
+                    html: `<div class="w-7 h-7 bg-amber-500 text-slate-950 font-bold text-xs rounded border-2 border-slate-900 flex items-center justify-center shadow-md hover:bg-amber-400 transition cursor-pointer">${key}</div>`,
+                    className: '',
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14]
+                });
+                L.marker(factory.coords, { icon: factoryIcon }).addTo(markersGroup)
+                    .bindPopup(`<b class='text-slate-900'>โรงงานอุตสาหกรรมกึ่งเคมี ${key}</b><br><span class='text-slate-600 text-xs'>พิกัดตรวจสอบเพื่อพิจารณาออกหมายค้นเชิงลึก</span>`);
+            });
+        }
+
+        // --- CORE GAME MATRIX RE-RENDER LOGIC ---
+        function updateSpatialLayers() {
+            dynamicLayersGroup.clearLayers();
+
+            // === DAY 1 MATRIX ===
+            if (currentDay === 1) {
+                if (currentSensor === 'FLOW') {
+                    // กระแสน้ำไหลปกติลงใต้
+                    drawFlowArrow([13.555, 100.272], [13.550, 100.274]); // แม่น้ำหลักตอนบน
+                    drawFlowArrow([13.546, 100.275], [13.540, 100.276]); // แม่น้ำหลักตอนล่าง
+                    drawFlowArrow([13.549, 100.278], [13.548, 100.275]); // คลองฝั่งตะวันออก
+                    drawFlowArrow([13.549, 100.269], [13.548, 100.274]); // คลองฝั่งตะวันตก
+                }
+                if (currentSensor === 'NDVI') {
+                    // พืชตลิ่งปกติสีเขียวหมด
+                    drawVegetationLine('B', '#22c55e');
+                    drawVegetationLine('C', '#22c55e');
+                }
+            }
+
+            // === DAY 2 MATRIX (วันเกิดเหตุ) ===
+            else if (currentDay === 2) {
+                // [RGB Mode]
+                if (currentSensor === 'RGB') {
+                    // 1. คราบน้ำเสียปลอมสีน้ำตาลเข้มจากตลิ่งตะวันออก (Zone B) ไหลสู่แม่น้ำสายหลัก
+                    L.polyline([
+                        [13.5492, 100.2815], // หน้าโรงงาน B
+                        [13.5490, 100.2790],
+                        [13.5480, 100.2755], // ปากคลอง
+                        [13.5465, 100.2750]  // พัดเลยใต้กระชังปลาลงไป
+                    ], { color: '#78350f', weight: 12, opacity: 0.85, lineJoin: 'round' }).addTo(dynamicLayersGroup)
+                    .bindPopup("<span class='text-xs font-bold text-amber-800'>ตะกอนขุ่นข้นสูง (Suspended Sediment) สีน้ำตาลเด่นชัด จากจุดกระจาย Zone B</span>");
+
+                    // 2. เมฆก้อนใหญ่ปกคลุมคลองฝั่งตะวันตก (บังตลิ่งและทางน้ำ Zone C มิดชิด)
+                    L.circle([13.5485, 100.2685], {
+                        color: '#f8fafc',
+                        fillColor: '#ffffff',
+                        fillOpacity: 0.9,
+                        radius: 550
+                    }).addTo(dynamicLayersGroup).bindPopup("<span class='text-xs text-slate-700'>กลุ่มเมฆคิวมูลัสหนาแน่น บดบังพื้นผิวด้านล่างในช่วงดาวเทียมโคจรผ่าน</span>");
+                }
+
+                // [NIR Mode] โหมดเจาะเมฆ
+                if (currentSensor === 'NIR') {
+                    // เมฆหายไป -> เผยให้เห็นคราบน้ำเสียสารเคมีแท้สีดำสนิทจาก Zone C ไหลลงมาตรงกระชังพอดี
+                    L.polyline([
+                        [13.5485, 100.2665], // หน้าโรงงาน C
+                        [13.5484, 100.2690],
+                        [13.5481, 100.2725],
+                        [13.5478, 100.2748]  // ไหลปะทะกระชังปลาพอดีเด๊ะ!
+                    ], { color: '#000000', weight: 10, opacity: 0.95, lineJoin: 'round' }).addTo(dynamicLayersGroup)
+                    .bindPopup("<span class='text-xs font-bold text-red-600'>ดัชนีคราบนํ้าเสียเคมีเค็ม/กรดจัด (Real Toxic Plume) ตรวจจับได้เฉพาะย่านความถี่ NIR ชี้เป้าจาก Zone C ตรงเข้าสู่พื้นที่ความเสียหาย</span>");
+                }
+
+                // [FLOW Mode]
+                if (currentSensor === 'FLOW') {
+                    // ทิศทางน้ำปกติ ชี้ทิศการพัดสารพิษเข้าหากระชัง
+                    drawFlowArrow([13.555, 100.272], [13.550, 100.274]); 
+                    drawFlowArrow([13.546, 100.275], [13.540, 100.276]); 
+                    drawFlowArrow([13.549, 100.278], [13.548, 100.275]); // คลองฝั่งตะวันออก (ไหลลงแม่น้ำ)
+                    drawFlowArrow([13.549, 100.269], [13.548, 100.274]); // คลองฝั่งตะวันตก (ไหลลงแม่น้ำมาชนกระชังพอดี)
+                }
+
+                // [NDVI Mode] วันเกิดเหตุสารพิษยังไม่ส่งผลต่อพืชริมตลิ่งทันที
+                if (currentSensor === 'NDVI') {
+                    drawVegetationLine('B', '#22c55e');
+                    drawVegetationLine('C', '#22c55e');
+                }
+            }
+
+            // === DAY 3 MATRIX (หลังพายุ/น้ำขึ้นหนุน) ===
+            else if (currentDay === 3) {
+                // คราบน้ำและเมฆทั้งหมดถูกพายุพัดหายไป (RGB/NIR จะไม่พบสิ่งผิดปกติในน้ำ)
+
+                // [FLOW Mode] เกิดสภาวะน้ำทะเลหนุน (ไหลย้อนกลับ 180 องศา ชี้ขึ้นเหนือ)
+                if (currentSensor === 'FLOW') {
+                    drawFlowArrow([13.540, 100.276], [13.546, 100.275], '#ef4444'); // ย้อนขึ้นเหนือ
+                    drawFlowArrow([13.550, 100.274], [13.555, 100.272], '#ef4444'); 
+                    drawFlowArrow([13.548, 100.275], [13.549, 100.278], '#ef4444'); // ดันย้อนเข้าคลองออก
+                    drawFlowArrow([13.548, 100.274], [13.549, 100.269], '#ef4444'); // ดันย้อนเข้าคลองตก
+                }
+
+                // [NDVI Mode] หลักฐานชิ้นสุดท้าย พืชตายเนื่องจากกรดสะสมริมน้ำ
+                if (currentSensor === 'NDVI') {
+                    drawVegetationLine('B', '#22c55e'); // ฝั่ง B พืชปกติ (เส้นสีเขียว)
+                    drawVegetationLine('C', '#ef4444'); // ฝั่ง C พืชตายเพราะสารพิษซึมเข้าดินตลิ่ง (เส้นสีแดงมัดตัว)
+                }
+            }
+        }
+
+        // --- HELPER DRAWING FUNCTIONS ---
+        // วาดลูกศรจำลองทิศทางการไหล
+        function drawFlowArrow(from, to, color = '#3b82f6') {
+            const line = L.polyline([from, to], { color: color, weight: 4, dashArray: '5, 10' }).addTo(dynamicLayersGroup);
+            
+            // สร้างหัวลูกศรแบบง่ายตรงจุดปลาย
+            L.circleMarker(to, { radius: 5, color: color, fillColor: color, fillOpacity: 1 }).addTo(dynamicLayersGroup)
+                .bindPopup(color === '#ef4444' ? "<span class='text-xs text-red-400 font-bold'>[น้ำหนุนย้อนกลับ] กระแสน้ำเปลี่ยนทิศไหลย้อนขึ้นทางเหนือเนื่องจากอิทธิพลน้ำทะเลหนุน</span>" : "<span class='text-xs text-blue-400'>[กระแสน้ำปกติ] น้ำไหลลงสู่ปากอ่าวทิศใต้ตามปกติ</span>");
+        }
+
+        // วาดเส้นจำลองสภาพพืชริมตลิ่ง (NDVI)
+        function drawVegetationLine(zone, colorCode) {
+            let polyCoords = [];
+            let desc = "";
+            if (zone === 'B') {
+                polyCoords = [[13.5500, 100.2825], [13.5495, 100.2795], [13.5484, 100.2760]];
+                desc = colorCode === '#22c55e' ? "NDVI: ~0.65 (พืชพันธุ์และป่าชายเลนริมตลิ่งมีสุขภาพสมบูรณ์ดี)" : "";
+            } else if (zone === 'C') {
+                polyCoords = [[13.5489, 100.2655], [13.5487, 100.2692], [13.5483, 100.2730]];
+                desc = colorCode === '#ef4444' ? "<b class='text-red-500'>NDVI: ~0.12 (วิกฤต! พืชริมตลิ่งเหี่ยวเฉาและตายอย่างรวดเร็วเนื่องจากได้รับสารเคมีเข้มข้นสูงจากดินขอบตลิ่ง)</b>" : "NDVI: ~0.62 (พืชริมตลิ่งยังไม่แสดงอาการผิดปกติในวันแรก)";
+            }
+
+            L.polyline(polyCoords, { color: colorCode, weight: 6, opacity: 0.9 }).addTo(dynamicLayersGroup)
+                .bindPopup(`<span class='text-xs'>${desc}</span>`);
+        }
+
+        // --- CONTROLLER ACTIONS ---
+        function switchDay(dayNum) {
+            if (!gameActive) return;
+            currentDay = dayNum;
+            
+            // Update active state class CSS
+            [1, 2, 3].forEach(d => {
+                const btn = document.getElementById(`btn-day${d}`);
+                if (d === dayNum) {
+                    btn.classList.remove('bg-slate-900', 'border-slate-700', 'text-slate-400');
+                    btn.classList.add('bg-cyan-950', 'border-cyan-500', 'text-cyan-300', 'scifi-glow-blue');
+                } else {
+                    btn.classList.add('bg-slate-900', 'border-slate-700', 'text-slate-400');
+                    btn.classList.remove('bg-cyan-950', 'border-cyan-500', 'text-cyan-300', 'scifi-glow-blue');
+                }
+            });
+
+            pushLog(`เปลี่ยนแกนเวลาเป็น [DAY ${dayNum}]`);
+            if (dayNum === 2) pushLog("แจ้งเตือน: พบรายงานเหตุปลาตายลอยเหนือสามแยกคลองส่งน้ำ");
+            if (dayNum === 3) pushLog("ระบบตรวจพบ: สภาพอากาศแปรปรวนหลังพายุผ่านพ้น และเกิดปรากฏการณ์น้ำทะเลหนุน");
+
+            updateSpatialLayers();
+        }
+
+        function switchSensor(sensorType) {
+            if (!gameActive) return;
+            currentSensor = sensorType;
+
+            const sensors = ['RGB', 'NIR', 'FLOW', 'NDVI'];
+            sensors.forEach(s => {
+                const btn = document.getElementById(`btn-${s.toLowerCase()}`);
+                if (s === sensorType) {
+                    btn.classList.add('bg-slate-900', 'border-slate-400', 'scale-[1.01]');
+                } else {
+                    btn.classList.remove('bg-slate-900', 'border-slate-400', 'scale-[1.01]');
+                }
+            });
+
+            pushLog(`เปลี่ยนโหมดวิเคราะห์เป็นย่านเซนเซอร์: [${sensorType}]`);
+            
+            if (sensorType === 'NIR' && currentDay === 2) {
+                pushLog("📡 NIR ALERT: ทะลุทะลวงชั้นเมฆสำเร็จ! ตรวจพบมลพิษทางน้ำสีดำข้นขนานยาวออกจาก Zone C");
+            }
+            if (sensorType === 'NDVI' && currentDay === 3) {
+                pushLog("🌱 NDVI ALERT: พบดัชนีคลอโรฟิลล์ลดฮวบริมตลิ่งสายตะวันตก (ร่องรอยกรดเคมีเค็ม)");
+            }
+
+            updateSpatialLayers();
+        }
+
+        function pushLog(message) {
+            const logBox = document.getElementById('log-box');
+            const timestamp = new Date().toLocaleTimeString();
+            logBox.innerHTML += `<div class="text-[11px]"><span class="text-cyan-500">[${timestamp}]</span> ${message}</div>`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function updateHPUI() {
+            const container = document.getElementById('hp-container');
+            container.innerHTML = '❤️ '.repeat(playerHP) || '💀 GAME OVER';
+        }
+
+        // --- WIN / LOSE EXECUTION ---
+        function executeRaid(zoneKey) {
+            if (!gameActive) return;
+
+            if (zoneKey === 'C') {
+                // ผู้เล่นชนะคดี
+                showEndScreen(true, "จับกุมคนร้ายสำเร็จ!", `
+                    <div class="text-emerald-400 font-bold text-lg mb-2">MISSION ACCOMPLISHED</div>
+                    <p class="text-xs text-slate-300 leading-relaxed text-left">
+                        <b>วิเคราะห์ตรรกะเชิงพื้นที่สมบูรณ์แบบ:</b><br>
+                        คุณจับกุมโรงงาน <b>Zone C</b> ได้คาหนังคาเขา! ถึงแม้ในวันที่เกิดเหตุ (Day 2) โรงงานจะฉวยโอกาสปล่อยสารพิษในช่วงที่มีเมฆหนาบังตาเปล่า (RGB) แต่การประยุกต์ใช้เซนเซอร์อินฟราเรดใกล้ (NIR) ได้ช่วยเจาะทะลุเมฆจนเห็นสารเคมีสีดำพัดไปตามกระแสน้ำเข้าหากระชังปลาพอดี<br><br>
+                        ประกอบกับหลักฐานยืนยันใน Day 3 ที่พบว่าดัชนีพืชริมตลิ่ง (NDVI) บริเวณคลองสายตะวันตกพังทลายกลายเป็นสีแดงเนื่องจากสารพิษซึมเข้าสู่รากพืช!
+                    </p>
+                `);
+            } else {
+                // ทายผิด
+                playerHP--;
+                updateHPUI();
+                pushLog(`🚨 หมายจับล้มเหลว: กองกำลังเข้าตรวจค้น Zone ${zoneKey} แต่ไม่พบร่องรอยสารเคมีผิดกฎหมายขัดแย้งกับหลักฐานเส้นทางน้ำ!`);
+                
+                if (playerHP <= 0) {
+                    showEndScreen(false, "ภารกิจล้มเหลว (Game Over)", `
+                        <div class="text-red-500 font-bold text-lg mb-2">CRITICAL DEFICIT</div>
+                        <p class="text-xs text-slate-300 leading-relaxed text-left">
+                            คุณใช้สิทธิ์ออกหมายค้นสะเปะสะปะจนทำให้โรงงานไหวตัวทันและทำลายหลักฐานจนหมดสิ้น!<br><br>
+                            <b>คำแนะนำจากศูนย์บัญชาการ:</b> อย่าหลงกลคราบน้ำสีน้ำตาลของ Zone B ใน Day 2 เพราะนั่นเป็นเพียงตะกอนธรรมชาติ ลองหาวิธีเจาะทะลุบล็อกก้อนเมฆทางฝั่งตะวันตก และตามรอยไปจนถึงระบบนิเวศตลิ่งในวันสุดท้ายดูสิ!
+                        </p>
+                    `);
+                }
+            }
+        }
+
+        function showEndScreen(isWin, title, HTMLContent) {
+            gameActive = false;
+            const modal = document.getElementById('end-modal');
+            const content = document.getElementById('modal-content');
+            
+            content.innerHTML = `
+                <h2 class="text-xl font-bold ${isWin ? 'text-emerald-400' : 'text-red-500'} uppercase">${title}</h2>
+                <div class="py-2">${HTMLContent}</div>
+                <button onclick="window.location.reload()" class="mt-4 px-6 py-2 bg-slate-900 border border-slate-700 text-slate-200 rounded hover:bg-slate-800 transition text-sm font-bold">
+                    🔄 เล่นใหม่อีกครั้ง
+                </button>
+            `;
+            modal.classList.remove('hidden');
+        }
+
+        // --- APP STARTUP ---
+        window.onload = () => {
+            initStaticLayers();
+            switchDay(1); // เริ่มต้นที่ Day 1
+            switchSensor('RGB'); // เริ่มต้นที่โหมดสีจริง
+            pushLog("🛰️ เชื่อมต่อสัญญาณดาวเทียมลุ่มน้ำท่าจีน... ระบบตรวจสอบพร้อมทำงาน");
+        };
+    </script>
+</body>
+</html>
