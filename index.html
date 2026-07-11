@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plume Hunter - Advanced Geo-Temporal Matrix (v3.0 Ayutthaya Confluence)</title>
-    <!-- Tailwind CSS -->
+    <title>Plume Hunter - Advanced Geo-Temporal Matrix (v3.1 Pinpoint Fixed)</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <style>
@@ -28,15 +26,14 @@
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans h-screen flex flex-col overflow-hidden">
 
-    <!-- Header Section -->
     <header class="bg-slate-900 border-b border-blue-900 p-4 flex justify-between items-center z-10 shrink-0">
         <div class="flex items-center space-x-3">
             <div class="w-3 h-3 bg-cyan-400 rounded-full animate-ping"></div>
-            <h1 class="text-xl font-bold tracking-wider text-cyan-400 uppercase">Plume Hunter: Ayutthaya Confluence (v3.0)</h1>
+            <h1 class="text-xl font-bold tracking-wider text-cyan-400 uppercase">Plume Hunter: Ayutthaya Confluence (v3.1)</h1>
         </div>
         <div class="flex items-center space-x-6 text-sm">
-            <div class="bg-slate-950 px-3 py-1.5 border border-slate-800 rounded">
-                <span class="text-slate-400">OPERATOR:</span> <span class="text-emerald-400 font-mono">GISTDA_ANALYST</span>
+            <div class="bg-slate-950 px-3 py-1.5 border border-slate-800 rounded text-amber-400 text-xs">
+                *คลิกขวาบนแผนที่เพื่อดูพิกัด (Dev Tool)*
             </div>
             <div class="bg-slate-950 px-3 py-1.5 border border-slate-800 rounded flex items-center space-x-2">
                 <span class="text-slate-400">CRITICAL HP:</span>
@@ -45,74 +42,57 @@
         </div>
     </header>
 
-    <!-- Main Container -->
     <div class="flex flex-1 w-full overflow-hidden">
-        
-        <!-- Left: Map Sandbox -->
+        <!-- Map Container -->
         <div class="w-2/3 h-full relative border-r border-blue-900 bg-slate-900">
-            <div id="map" class="w-full h-full"></div>
-            
-            <!-- Floating Map Legend -->
+            <div id="map" class="w-full h-full cursor-crosshair"></div>
             <div class="absolute bottom-4 left-4 z-[1000] scifi-panel p-3 rounded-lg max-w-xs text-xs pointer-events-none">
                 <div class="font-bold text-cyan-400 mb-1.5 uppercase tracking-wide border-b border-slate-700 pb-1">Legend (อยุธยา)</div>
                 <div class="space-y-1 text-slate-300">
-                    <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full bg-red-600 block"></span> <span>จุดเกิดเหตุ (กระชังปลาตายจุดบรรจบน้ำ)</span></div>
-                    <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded bg-amber-500 block"></span> <span>อุตสาหกรรมต้องสงสัย (ริมตลิ่ง)</span></div>
-                    <div class="flex items-center space-x-2"><span class="w-5 h-0.5 bg-blue-500 block border-t border-dashed"></span> <span>กระแสน้ำปกติ (ป่าสัก & เจ้าพระยา)</span></div>
+                    <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full bg-red-600 block"></span> <span>จุดเกิดเหตุ</span></div>
+                    <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded bg-amber-500 block"></span> <span>โรงงานต้องสงสัย</span></div>
+                    <div class="flex items-center space-x-2"><span class="w-5 h-0.5 bg-blue-500 block border-t border-dashed"></span> <span>ทิศทางน้ำ</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- Right: Dashboard -->
+        <!-- Dashboard -->
         <div class="w-1/3 h-full flex flex-col bg-slate-950 p-4 space-y-4 overflow-y-auto">
-            
             <div class="scifi-panel p-3.5 rounded-lg border-l-4 border-l-cyan-500">
                 <h2 class="text-xs font-bold text-cyan-400 uppercase tracking-wider mb-1">คดี: มลพิษทางน้ำเกาะเมืองอยุธยา</h2>
-                <p class="text-xs text-slate-300 leading-relaxed">
-                    พบปลาตายเกลื่อนบริเวณจุดบรรจบแม่น้ำเจ้าพระยาและแม่น้ำป่าสัก คาดว่ามีโรงงานอาศัยความซับซ้อนของสายน้ำและลำคลองในการแอบปล่อยน้ำเสียเคมีเข้มข้น วิเคราะห์ชั้นข้อมูลเพื่อหาต้นตอ
-                </p>
+                <p class="text-xs text-slate-300 leading-relaxed">ค้นหาโรงงานที่แอบปล่อยน้ำเสียลงสู่แม่น้ำ</p>
             </div>
 
-            <!-- Time-Series & Sensors -->
             <div class="scifi-panel p-3.5 rounded-lg">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">⏱️ 1. เลือกช่วงเวลา</h3>
                 <div class="grid grid-cols-3 gap-2 mb-4">
                     <button id="btn-day1" onclick="switchDay(1)" class="py-2 px-1 text-xs font-bold rounded border uppercase bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800">Day 1</button>
-                    <button id="btn-day2" onclick="switchDay(2)" class="py-2 px-1 text-xs font-bold rounded border uppercase bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800">Day 2 (เกิดเหตุ)</button>
+                    <button id="btn-day2" onclick="switchDay(2)" class="py-2 px-1 text-xs font-bold rounded border uppercase bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800">Day 2</button>
                     <button id="btn-day3" onclick="switchDay(3)" class="py-2 px-1 text-xs font-bold rounded border uppercase bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800">Day 3</button>
                 </div>
 
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">🛰️ 2. ภาพถ่ายดาวเทียม</h3>
                 <div class="grid grid-cols-1 gap-2 mb-3">
-                    <button id="btn-rgb" onclick="switchImagery('RGB')" class="p-2 text-xs font-bold rounded border text-left flex justify-between items-center bg-slate-900 border-slate-700">
-                        <span>[RGB] True Color</span>
-                    </button>
-                    <button id="btn-nir" onclick="switchImagery('NIR')" class="p-2 text-xs font-bold rounded border text-left flex justify-between items-center bg-slate-900 border-slate-700">
-                        <span>[NIR] False Color <span class="text-[10px] text-slate-400 ml-2">(เจาะเมฆ/ดูเคมีจมน้ำ)</span></span>
-                    </button>
-                    <button id="btn-ndvi" onclick="switchImagery('NDVI')" class="p-2 text-xs font-bold rounded border text-left flex justify-between items-center bg-slate-900 border-slate-700">
-                        <span>[NDVI] Vegetation Index <span class="text-[10px] text-slate-400 ml-2">(ดัชนีรากพืชริมตลิ่ง)</span></span>
-                    </button>
+                    <button id="btn-rgb" onclick="switchImagery('RGB')" class="p-2 text-xs font-bold rounded border text-left flex justify-between items-center bg-slate-900 border-slate-700"><span>[RGB] True Color</span></button>
+                    <button id="btn-nir" onclick="switchImagery('NIR')" class="p-2 text-xs font-bold rounded border text-left flex justify-between items-center bg-slate-900 border-slate-700"><span>[NIR] False Color</span></button>
+                    <button id="btn-ndvi" onclick="switchImagery('NDVI')" class="p-2 text-xs font-bold rounded border text-left flex justify-between items-center bg-slate-900 border-slate-700"><span>[NDVI] Vegetation Index</span></button>
                 </div>
 
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">🌊 3. ซ้อนทับข้อมูลกระแสน้ำ</h3>
                 <label class="flex items-center space-x-3 bg-slate-900 border border-slate-800 p-2.5 rounded cursor-pointer hover:bg-slate-850">
                     <input type="checkbox" id="chk-flow" onchange="toggleFlowLayer()" class="w-4 h-4 accent-cyan-500">
-                    <span class="text-xs font-bold text-cyan-400">[FLOW] แสดงทิศทางน้ำ (Hydro-Dynamics)</span>
+                    <span class="text-xs font-bold text-cyan-400">เปิดซ้อนทับเส้นกระแสน้ำ (FLOW)</span>
                 </label>
             </div>
 
-            <!-- Raid Panel -->
             <div class="scifi-panel p-3.5 rounded-lg border-t-2 border-t-red-600">
-                <h3 class="text-xs font-bold text-red-400 uppercase tracking-wider mb-2.5">🚨 4. ออกหมายจับกุมพื้นที่เป้าหมาย</h3>
                 <div class="grid grid-cols-2 gap-2">
-                    <button onclick="executeRaid('A')" class="py-2 bg-slate-900 border border-amber-600 text-amber-400 rounded text-xs font-bold hover:bg-amber-950/40">RAID ZONE A</button>
-                    <button onclick="executeRaid('B')" class="py-2 bg-slate-900 border border-amber-600 text-amber-400 rounded text-xs font-bold hover:bg-amber-950/40">RAID ZONE B</button>
-                    <button onclick="executeRaid('C')" class="py-2 bg-slate-900 border border-amber-600 text-amber-400 rounded text-xs font-bold hover:bg-amber-950/40">RAID ZONE C</button>
-                    <button onclick="executeRaid('D')" class="py-2 bg-slate-900 border border-amber-600 text-amber-400 rounded text-xs font-bold hover:bg-amber-950/40">RAID ZONE D</button>
+                    <button onclick="executeRaid('A')" class="py-2 bg-slate-900 border border-amber-600 text-amber-400 rounded text-xs font-bold hover:bg-amber-950/40">RAID A</button>
+                    <button onclick="executeRaid('B')" class="py-2 bg-slate-900 border border-amber-600 text-amber-400 rounded text-xs font-bold hover:bg-amber-950/40">RAID B</button>
+                    <button onclick="executeRaid('C')" class="py-2 bg-slate-900 border border-amber-600 text-amber-400 rounded text-xs font-bold hover:bg-amber-950/40">RAID C</button>
+                    <button onclick="executeRaid('D')" class="py-2 bg-slate-900 border border-amber-600 text-amber-400 rounded text-xs font-bold hover:bg-amber-950/40">RAID D</button>
                 </div>
             </div>
-
+            
             <!-- Log Terminal -->
             <div class="flex-1 min-h-[120px] bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-[11px] flex flex-col">
                 <div id="log-box" class="flex-1 overflow-y-auto space-y-1 text-slate-400 pr-1"></div>
@@ -120,7 +100,7 @@
         </div>
     </div>
 
-    <!-- Modals End Game -->
+    <!-- Modal -->
     <div id="end-modal" class="fixed inset-0 bg-slate-950/90 z-[9999] hidden flex items-center justify-center p-4">
         <div id="modal-content" class="max-w-md w-full scifi-panel p-6 rounded-xl text-center space-y-4"></div>
     </div>
@@ -132,18 +112,15 @@
         let playerHP = 2;
         let gameActive = true;
 
-        // --- NEW COMPLEX COORDINATES: Ayutthaya Confluence (เจ้าพระยา ตัด ป่าสัก) ---
-        // ซับซ้อนกว่าเดิมเพราะมีแม่น้ำหลัก 2 สายวิ่งมาชนกัน และมีคลองย่อย
+        // --- พิกัดที่ปรับแก้ใหม่ (พยายามเกาะตลิ่งให้มากที่สุด) ---
         const mapCenter = [14.3450, 100.5750]; 
-        
-        // จุดเกิดเหตุ: กลางสามแยกบรรจบน้ำ (หน้าวัดพนัญเชิง)
-        const fishCageCoords = [14.3435, 100.5765]; 
+        const fishCageCoords = [14.3438, 100.5770]; // กลางน้ำ 
         
         const factories = {
-            A: { name: "Zone A (โรงงานริมแม่น้ำป่าสัก - ต้นน้ำ)", coords: [14.3510, 100.5782] }, // ตลิ่งป่าสัก
-            B: { name: "Zone B (โรงงานริมเจ้าพระยาตะวันตก - ตัวหลอก)", coords: [14.3435, 100.5700] }, // ตลิ่งเจ้าพระยาฝั่งเกาะเมือง
-            C: { name: "Zone C (แอบซ่อนในคลองย่อยฝั่งตะวันออก - คนร้าย)", coords: [14.3468, 100.5802] }, // ตลิ่งคลองย่อยที่ไหลลงป่าสัก
-            D: { name: "Zone D (โรงงานริมน้ำปลายจุดบรรจบ)", coords: [14.3360, 100.5755] } // ใต้จุดบรรจบ
+            A: { name: "Zone A", coords: [14.3503, 100.5768] }, // ริมตลิ่งป่าสักฝั่งตก
+            B: { name: "Zone B", coords: [14.3444, 100.5732] }, // ริมตลิ่งเจ้าพระยาฝั่งเหนือ
+            C: { name: "Zone C", coords: [14.3470, 100.5796] }, // ริมคลองย่อย
+            D: { name: "Zone D", coords: [14.3385, 100.5780] }  // ริมเจ้าพระยาตอนล่างฝั่งออก
         };
 
         const map = L.map('map', { zoomControl: true, minZoom: 14, maxZoom: 17 }).setView(mapCenter, 15);
@@ -151,6 +128,20 @@
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri &mdash; Imagery Source'
         }).addTo(map);
+
+        // --- DEVELOPER TOOL: คลิกขวาเพื่อหาพิกัด ---
+        map.on('contextmenu', function(e) {
+            const lat = e.latlng.lat.toFixed(5);
+            const lng = e.latlng.lng.toFixed(5);
+            
+            // สร้าง Popup ตรงจุดที่คลิก
+            L.popup()
+                .setLatLng(e.latlng)
+                .setContent(`<div class="text-slate-900 font-mono text-xs"><b>[${lat}, ${lng}]</b><br>คัดลอกตัวเลขนี้ไปใส่ในโค้ด (factories) ได้เลยครับ</div>`)
+                .openOn(map);
+                
+            pushLog(`📍 [DevTool] พิกัดที่เล็ง: ${lat}, ${lng}`);
+        });
 
         const markersGroup = L.layerGroup().addTo(map);
         const imageryLayersGroup = L.layerGroup().addTo(map);
@@ -164,16 +155,14 @@
                 html: `<div class="w-8 h-8 bg-red-600 rounded-full border-2 border-white flex items-center justify-center font-bold text-white shadow-xl">☠️</div>`,
                 iconSize: [32, 32], iconAnchor: [16, 16]
             });
-            L.marker(fishCageCoords, { icon: fishIcon }).addTo(markersGroup)
-                .bindPopup("<div class='text-slate-900 text-xs'><b>กระชังปลานิลตายเกลื่อน</b><br>อยู่ตรงข้ามวัดพนัญเชิง จุดที่มวลน้ำป่าสักและเจ้าพระยาปะทะกัน</div>");
+            L.marker(fishCageCoords, { icon: fishIcon }).addTo(markersGroup);
 
             Object.keys(factories).forEach(key => {
                 const factoryIcon = L.divIcon({
-                    html: `<div class="flex items-center bg-amber-500 text-slate-950 font-bold text-[10px] px-2 py-1 rounded border border-slate-950 hover:bg-amber-400 min-w-[55px] justify-center shadow-lg">🏭 FACTORY ${key}</div>`,
-                    className: '', iconSize: [75, 24], iconAnchor: [37, 12]
+                    html: `<div class="flex items-center bg-amber-500 text-slate-950 font-bold text-[10px] px-2 py-1 rounded border border-slate-950 shadow-lg mt-2">🏭 ZONE ${key}</div>`,
+                    className: '', iconSize: [70, 24], iconAnchor: [35, 0] // Anchor ไว้บนตลิ่งพอดี
                 });
-                L.marker(factories[key].coords, { icon: factoryIcon }).addTo(markersGroup)
-                    .bindPopup(`<b class='text-slate-900 text-xs'>${factories[key].name}</b>`);
+                L.marker(factories[key].coords, { icon: factoryIcon }).addTo(markersGroup);
             });
         }
 
@@ -183,49 +172,34 @@
 
             if (currentDay === 2) {
                 if (currentImagery === 'RGB') {
-                    // Fake Plume จากแม่น้ำเจ้าพระยา (Zone B) พัดมาทางตะวันออกเข้าสามแยก
-                    L.polyline([[14.3435, 100.5700], [14.3433, 100.5740], [14.3435, 100.5760]], {
-                        color: '#78350f', weight: 14, opacity: 0.85, lineJoin: 'round'
+                    L.polyline([[14.3444, 100.5732], [14.3440, 100.5750], [14.3438, 100.5770]], {
+                        color: '#78350f', weight: 12, opacity: 0.85, lineJoin: 'round'
                     }).addTo(imageryLayersGroup);
-
-                    // เมฆบังทับคลองย่อยทางตะวันออก (ปิดบัง Zone C ที่แอบซ่อนอยู่)
-                    L.circle([14.3465, 100.5795], { color: '#f8fafc', fillColor: '#ffffff', fillOpacity: 0.9, radius: 350 }).addTo(imageryLayersGroup);
+                    L.circle([14.3468, 100.5790], { color: '#f8fafc', fillColor: '#ffffff', fillOpacity: 0.9, radius: 300 }).addTo(imageryLayersGroup);
                 } 
                 else if (currentImagery === 'NIR') {
-                    // Real Toxic Plume แอบไหลจากคลองย่อย (Zone C) ทะลักลงป่าสัก และพัดตรงเข้ากระชังปลา
-                    L.polyline([
-                        [14.3468, 100.5802], // ต้นทางคลอง
-                        [14.3460, 100.5780], // ปากคลองตัดแม่น้ำป่าสัก
-                        [14.3445, 100.5770], // ลอยตามป่าสักลงใต้
-                        [14.3435, 100.5765]  // ปะทะกระชังปลา
-                    ], {
-                        color: '#09090b', weight: 10, opacity: 0.95, lineJoin: 'round'
+                    L.polyline([[14.3470, 100.5796], [14.3460, 100.5780], [14.3445, 100.5775], [14.3438, 100.5770]], {
+                        color: '#09090b', weight: 8, opacity: 0.95, lineJoin: 'round'
                     }).addTo(imageryLayersGroup);
                 }
             } 
-            else if (currentDay === 3) {
-                if (currentImagery === 'NDVI') {
-                    // ตลิ่งเจ้าพระยาฝั่ง B (เขียว)
-                    L.polyline([[14.3435, 100.5700], [14.3435, 100.5730]], { color: '#22c55e', weight: 6, opacity: 0.9 }).addTo(imageryLayersGroup);
-                    // ตลิ่งคลองย่อยฝั่ง C (แดง - หญ้าตายเพราะกรดจากท่อใต้ดิน)
-                    L.polyline([[14.3468, 100.5802], [14.3462, 100.5785]], { color: '#ef4444', weight: 6, opacity: 0.9 }).addTo(imageryLayersGroup);
-                }
+            else if (currentDay === 3 && currentImagery === 'NDVI') {
+                L.polyline([[14.3444, 100.5732], [14.3445, 100.5710]], { color: '#22c55e', weight: 5, opacity: 0.9 }).addTo(imageryLayersGroup);
+                L.polyline([[14.3470, 100.5796], [14.3465, 100.5785]], { color: '#ef4444', weight: 5, opacity: 0.9 }).addTo(imageryLayersGroup);
             }
 
-            // Flow Dynamics: โครงข่ายน้ำแบบ 3 ทาง (Y-Junction)
             if (showFlow) {
-                let colorCode = (currentDay === 3) ? '#ef4444' : '#2563eb';
-                
-                if (currentDay === 1 || currentDay === 2) { // น้ำปกติไหลลงใต้
-                    drawFlowArrow([14.3510, 100.5775], [14.3460, 100.5775], colorCode); // ป่าสัก (เหนือ -> กลาง)
-                    drawFlowArrow([14.3465, 100.5800], [14.3458, 100.5775], colorCode); // คลองย่อย C (ออก -> ตก ลงป่าสัก)
-                    drawFlowArrow([14.3435, 100.5700], [14.3435, 100.5750], colorCode); // เจ้าพระยา (ตก -> ออก มาบรรจบ)
-                    drawFlowArrow([14.3435, 100.5765], [14.3360, 100.5760], colorCode); // รวมกันไหลลงใต้ไปกรุงเทพ
-                } else { // น้ำหนุน (ทวนกระแสทุกทิศทาง)
-                    drawFlowArrow([14.3360, 100.5760], [14.3435, 100.5765], colorCode); 
-                    drawFlowArrow([14.3435, 100.5750], [14.3435, 100.5700], colorCode);
-                    drawFlowArrow([14.3458, 100.5775], [14.3465, 100.5800], colorCode); 
-                    drawFlowArrow([14.3460, 100.5775], [14.3510, 100.5775], colorCode);
+                let color = (currentDay === 3) ? '#ef4444' : '#2563eb';
+                if (currentDay === 1 || currentDay === 2) {
+                    drawFlowArrow([14.3503, 100.5775], [14.3460, 100.5775], color); 
+                    drawFlowArrow([14.3468, 100.5795], [14.3458, 100.5775], color); 
+                    drawFlowArrow([14.3440, 100.5720], [14.3438, 100.5760], color); 
+                    drawFlowArrow([14.3438, 100.5770], [14.3385, 100.5775], color); 
+                } else {
+                    drawFlowArrow([14.3385, 100.5775], [14.3438, 100.5770], color); 
+                    drawFlowArrow([14.3438, 100.5760], [14.3440, 100.5720], color);
+                    drawFlowArrow([14.3458, 100.5775], [14.3468, 100.5795], color); 
+                    drawFlowArrow([14.3460, 100.5775], [14.3503, 100.5775], color);
                 }
             }
         }
@@ -240,11 +214,8 @@
             currentDay = dayNum;
             [1, 2, 3].forEach(d => {
                 const btn = document.getElementById(`btn-day${d}`);
-                btn.className = (d === dayNum) 
-                    ? "py-2 px-1 text-xs font-bold rounded border uppercase bg-cyan-950 border-cyan-500 text-cyan-300 scifi-glow-blue"
-                    : "py-2 px-1 text-xs font-bold rounded border uppercase bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800 transition";
+                btn.className = (d === dayNum) ? "py-2 px-1 text-xs font-bold rounded border uppercase bg-cyan-950 border-cyan-500 text-cyan-300 scifi-glow-blue" : "py-2 px-1 text-xs font-bold rounded border uppercase bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800";
             });
-            pushLog(`เปลี่ยนข้อมูลเวลา: [DAY ${dayNum}]`);
             updateMapLayers();
         }
 
@@ -255,7 +226,6 @@
                 const btn = document.getElementById(`btn-${m.toLowerCase()}`);
                 (m === mode) ? btn.classList.add('border-cyan-400', 'bg-slate-900', 'text-cyan-400') : btn.classList.remove('border-cyan-400', 'bg-slate-900', 'text-cyan-400');
             });
-            pushLog(`ปรับเซนเซอร์: [${mode}]`);
             updateMapLayers();
         }
 
@@ -273,28 +243,21 @@
         function executeRaid(zoneKey) {
             if (!gameActive) return;
             if (zoneKey === 'C') {
-                showEndScreen(true, "สืบสวนสำเร็จ: พบต้นตอในคลองย่อย!", `
-                    <div class="text-emerald-400 font-bold mb-2">เคสอยุธยาถูกคลี่คลาย</div>
-                    <p class="text-xs text-slate-300 text-left">คุณไม่โดนมวลน้ำขุ่นของแม่น้ำเจ้าพระยา (Zone B) หลอกตา! การเปิด NIR ทำให้เห็นว่าความจริงแล้ว <b>Zone C</b> อาศัยมุมอับของคลองย่อย และก้อนเมฆบัง แอบทิ้งสารเคมีให้ไหลลงมาบรรจบที่แม่น้ำป่าสัก ก่อนจะพัดตรงเข้าสู่กระชังปลาหน้าวัดพนัญเชิงพอดี หลักฐานมัดตัวคือตลิ่งคลองย่อยที่ตายเรียบ (NDVI) ในวันที่ 3!</p>
-                `);
+                showEndScreen(true, "เป้าหมายถูกล็อค!", "ภารกิจเสร็จสิ้น ตรวจพบสารเคมีที่ Zone C");
             } else {
                 playerHP--;
                 document.getElementById('hp-container').innerHTML = '❤️ '.repeat(playerHP) || '💀';
-                if (playerHP <= 0) showEndScreen(false, "สืบสวนล้มเหลว", `<p class="text-xs text-slate-300">ความซับซ้อนของโครงข่ายน้ำอยุธยาหลอกคุณสำเร็จ! คราบสีน้ำตาลของเจ้าพระยาเป็นแค่ตะกอนธรรมชาติ คนร้ายตัวจริงซ่อนอยู่ในคลองย่อยต่างหาก</p>`);
+                if (playerHP <= 0) showEndScreen(false, "ภารกิจล้มเหลว", "โรงงานไหวตัวทัน");
             }
         }
 
-        function showEndScreen(isWin, title, contentHTML) {
+        function showEndScreen(isWin, title, msg) {
             gameActive = false;
             document.getElementById('end-modal').classList.remove('hidden');
-            document.getElementById('modal-content').innerHTML = `
-                <h2 class="text-lg font-bold ${isWin ? 'text-emerald-400' : 'text-red-500'}">${title}</h2>
-                <div>${contentHTML}</div>
-                <button onclick="window.location.reload()" class="mt-4 px-4 py-2 bg-slate-900 border border-slate-700 rounded text-xs text-white">เล่นอีกครั้ง</button>
-            `;
+            document.getElementById('modal-content').innerHTML = `<h2 class="text-lg font-bold ${isWin ? 'text-emerald-400' : 'text-red-500'}">${title}</h2><p class="text-white">${msg}</p><button onclick="window.location.reload()" class="mt-4 px-4 py-2 bg-slate-900 border border-slate-700 rounded text-xs text-white">เล่นอีกครั้ง</button>`;
         }
 
-        window.onload = () => { initStaticMarkers(); switchDay(1); switchImagery('RGB'); pushLog("โหลดพิกัดเกาะเมืองอยุธยา..."); };
+        window.onload = () => { initStaticMarkers(); switchDay(1); switchImagery('RGB'); pushLog("ระบบพร้อมทำงาน. (คลิกขวาที่แผนที่เพื่อเล็งพิกัดจริง)"); };
     </script>
 </body>
 </html>
